@@ -1,1 +1,1 @@
-# Comp-Distri
+# Projeto de Computação Distribuída
