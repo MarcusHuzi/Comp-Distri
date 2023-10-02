@@ -1,3 +1,4 @@
+/*
 addEventListener('click', (event) => {
   const angle = Math.atan2(
     event.clientY - canvas.height / 2,
@@ -11,4 +12,4 @@ addEventListener('click', (event) => {
     new Projectile(canvas.width / 2, canvas.height / 2, 5, 'white', velocity)
   )
 })
-
+*/
