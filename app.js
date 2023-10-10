@@ -28,7 +28,8 @@ io.on('connection', (socket)=> {
   players[socket.id] = { //definir atributos do novo player
     x:500*Math.random(),
     y:500 * Math.random(),
-    color:'hsl('+ 360*Math.random() +',100%,50%)'
+    color:'hsl('+ 360*Math.random() +',100%,50%)',
+    sequenceNumber: 0
   }
 
   io.emit('updatePlayers', players) //atualizar numero de players para todos os jogadores
@@ -42,8 +43,9 @@ io.on('connection', (socket)=> {
 
 
   //capturar movimentacao do player
-  const SPEED = 10
-  socket.on('keydown', (keycode) => {
+  const SPEED = 5
+  socket.on('keydown', ({keycode, sequenceNumber}) => {
+    players[socket.id].sequenceNumber = sequenceNumber
     switch(keycode){
       case 'KeyW':
         players[socket.id].y -= SPEED
