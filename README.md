@@ -12,4 +12,4 @@ Desenvolvimento de um jogo multiplayer Shooter em 3° pessoa, rodando em um serv
 
 Para rodar o servidor execute: nodemon app.js
 
-Para entrar no jogo conecte-se pelo seu browser ao servidor na porta 3000
+Para entrar no jogo (rodando localmente) conecte-se pelo seu browser ao servidor na porta 3000
