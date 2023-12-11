@@ -17,6 +17,28 @@ const y = canvas.height / 2
 
 //armazenar jogadores
 const players = {}
+const projectiles = {}
+
+socket.on('updateProjectiles', (backendProjectiles) => {
+  for (const id in backendProjectiles){
+    const backendProjectile = backendProjectiles[id]
+
+    if (!projectiles[id]){
+      projectiles[id] = new Projectile(backendProjectile.x, backendProjectile.y, 5, players[backendProjectile.playerId]?.color, backendProjectile.velocity)
+    } else {
+      projectiles[id].x += backendProjectile.velocity.x
+      projectiles[id].y += backendProjectile.velocity.y
+    }  
+  }
+  
+  //remocao de projeteis
+  for(const id in projectiles){
+    if(!backendProjectiles[id]){
+      delete projectiles[id]
+    }
+  }
+  
+})
 
 //puxar do backend quais são os jogadores
 socket.on('updatePlayers', (backendPlayers) => {
@@ -25,7 +47,33 @@ socket.on('updatePlayers', (backendPlayers) => {
 
     if(!players[id]){ //se o player nao existe ainda => criar
       players[id] = new Player(backendPlayer.x, backendPlayer.y,10,backendPlayer.color)
+
+      document.querySelector('#playerLabels').innerHTML += `<div player-id="${id}" count-score="${backendPlayer.score}"> ${backendPlayer.username}: ${backendPlayer.score} </div>`
+
     } else { // se o player ja existe => atualizar atributos
+
+      document.querySelector(`div[player-id="${id}"]`).innerHTML = `${backendPlayer.username}: ${backendPlayer.score}`
+
+      document.querySelector(`div[player-id="${id}"]`).setAttribute('count-score', backendPlayer.score)
+
+      const parentDiv = document.querySelector('#playerLabels')
+      const childDiv = Array.from(parentDiv.querySelectorAll('div'))
+
+      childDiv.sort((a, b) => {
+        const scoreA = Number(a.getAttribute('count-score'))
+        const scoreB = Number(b.getAttribute('count-score'))
+
+        return scoreB - scoreA
+      })
+
+      childDiv.forEach((div) => {
+        parentDiv.removeChild(div)
+      })
+
+      childDiv.forEach((div) => {
+        parentDiv.appendChild(div)
+      })
+
       if(id === socket.id){ //reconciliacao do servidor para o player 
         players[id].x = backendPlayer.x
         players[id].y = backendPlayer.y
@@ -46,13 +94,6 @@ socket.on('updatePlayers', (backendPlayers) => {
         players[id].x = backendPlayer.x
         players[id].y = backendPlayer.y
         
-        //interpolacao do player
-        gasp.to(players[id], {
-          x:backendPlayer.x,
-          y:backendPlayer.y,
-          duration: 0.015,
-          ease: 'linear'
-        })
       }
     }
   }
@@ -60,6 +101,13 @@ socket.on('updatePlayers', (backendPlayers) => {
   //remocao de player
   for(const id in players){
     if(!backendPlayers[id]){
+      const divDelete = document.querySelector(`div[player-id="${id}"]`)
+      divDelete.parentNode.removeChild(divDelete)
+
+      if(id === socket.id){
+        document.querySelector('#usernameForm').style.display = 'block'
+      }
+
       delete players[id]
     }
   }
@@ -79,6 +127,12 @@ function animate() {
     const player = players[id]
     player.draw()
   }
+
+  for (const id in projectiles){
+    const projectile = projectiles[id]
+    projectile.draw()
+  }
+
 }
 
 animate()
@@ -171,4 +225,15 @@ window.addEventListener('keyup', (event) => { //evento para quando a tecla eh so
       break
   }
 
+})
+
+document.querySelector('#usernameForm').addEventListener('submit', (event) => {
+  event.preventDefault()
+  document.querySelector('#usernameForm').style.display = 'none'
+  socket.emit('initGame', {
+    username: document.querySelector('#usernameInput').value,
+    width: canvas.width, 
+    height: canvas.height, 
+    devicePixelRatio
+  })
 })
